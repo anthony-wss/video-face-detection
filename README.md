@@ -33,9 +33,13 @@ Format in results.json:
 ```
 
 $N$: number of sampled frames
+
 $n$: number of frames that has at least one face
+
 $a_i$: number of faces in frame $i$
+
 $b_i$: number of faces in frame $i$ after background faces removal
+
 $c_i$: for a particular face $i$, it appears $c_i$ time in all the $N$ frames
 
 * `video_id`: the folder name in `frames/`
