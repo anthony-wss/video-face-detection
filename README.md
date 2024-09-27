@@ -10,7 +10,7 @@ The code is designed for large amount of videos (>1k).
 
 ```bash
 pip install -r requirements.txt
-bash run.sh [video_folder]
+bash run.sh [video_folder] [frames_folder]
 ```
 
 ## Implementation
