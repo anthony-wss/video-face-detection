@@ -85,14 +85,28 @@ if __name__ == "__main__":
                     all_faces.append(img)
             if len(face_embs) > 0:
                 has_face += 1
-                
-        # Run clustering
-        distance_matrix = pdist(all_embs, metric='euclidean')
-        Z = linkage(distance_matrix, method='complete')
-        clusters = fcluster(Z, t=TOLERANCE, criterion='distance')
+        
+        if len(all_embs) == 0:
+            results.append([video_folder, 0, []])
 
-        counter = Counter(clusters)
-        order_id = sorted(counter, key=counter.get, reverse=True)
+        # Only one face is found in only one frame
+        elif len(all_embs) == 1:
+            results.append([video_folder, has_face/N, [1.0]])
+
+        else:
+            # Run clustering
+            distance_matrix = pdist(all_embs, metric='euclidean')
+            Z = linkage(distance_matrix, method='complete')
+            clusters = fcluster(Z, t=TOLERANCE, criterion='distance')
+
+            counter = Counter(clusters)
+            order_id = sorted(counter, key=counter.get, reverse=True)
+
+            results.append([ # folder_name, % frames with face, face cluster sizes
+                video_folder,
+                round(has_face/N, 2),
+                [round(counter[i]/N, 2) for i in order_id], np.mean(face_in_frames)
+            ])
         
         if LOG_CLUSTER_IMG:
             for i in range(len(all_faces)):
@@ -100,9 +114,7 @@ if __name__ == "__main__":
                 os.makedirs(f"debug/{cluster}/", exist_ok=True)
                 cv2.imwrite(f"debug/{cluster}/{i}.png", all_faces[i])
 
-        results.append([
-            video_folder, round(has_face/N, 2), [round(counter[i]/N, 2) for i in order_id], np.mean(face_in_frames)
-        ])
+        
         with open('results.json', "w") as fout:
             json.dump(results, fout, indent=2, ensure_ascii=False)
 
