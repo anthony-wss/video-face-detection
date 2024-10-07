@@ -3,3 +3,7 @@ scipy
 opencv-python
 numpy
 tqdm
+soundfile
+silero-vad
+moviepy
+onnxruntime
