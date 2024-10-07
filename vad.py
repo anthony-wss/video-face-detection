@@ -4,7 +4,8 @@ from typing import List
 import os
 
 SAMPLING_RATE = 16000
-MIN_LENGTH = 1 # in seconds
+NEIGHBOR_THRESHOLD = 3  # seconds
+MIN_DURATION = 15  # seconds
 
 def main(args):
     model = load_silero_vad(onnx=True)
@@ -18,8 +19,20 @@ def main(args):
             for chunk in speech_timestamps:
                 start_time = chunk['start'] / SAMPLING_RATE
                 end_time = chunk['end'] / SAMPLING_RATE
-                if end_time - start_time > MIN_LENGTH:
-                    ret.append((round(start_time, 1), round(end_time, 1)))
+                ret.append((start_time, end_time))
+            # Concatenate adjacent chunks that are close to each other
+            merged_chunks = []
+            if ret:
+                current_chunk = ret[0]
+                for next_chunk in ret[1:]:
+                    if next_chunk[0] - current_chunk[1] <= NEIGHBOR_THRESHOLD:  # Adjust the threshold as needed
+                        current_chunk = (current_chunk[0], next_chunk[1])
+                    else:
+                        merged_chunks.append(current_chunk)
+                        current_chunk = next_chunk
+                merged_chunks.append(current_chunk)
+            ret = merged_chunks
+            ret = [(start, end) for start, end in ret if end - start >= MIN_DURATION]
             with open(args.output_file, 'a') as f:
                 for i,chunk in enumerate(ret):
                     print(f'{extracted_id},{i},{chunk[0]},{chunk[1]}', file=f)
